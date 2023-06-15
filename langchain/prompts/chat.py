@@ -115,9 +115,9 @@ class ChatMessagePromptTemplate(BaseStringMessagePromptTemplate):
 
 
 class HumanMessagePromptTemplate(BaseStringMessagePromptTemplate):
-    def format(self, **kwargs: Any) -> BaseMessage:
+    def format(self, name=None, **kwargs: Any) -> BaseMessage:
         text = self.prompt.format(**kwargs)
-        return HumanMessage(content=text, additional_kwargs=self.additional_kwargs)
+        return HumanMessage(content=text, name=name, additional_kwargs=self.additional_kwargs)
 
 
 class AIMessagePromptTemplate(BaseStringMessagePromptTemplate):
