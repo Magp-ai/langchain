@@ -95,15 +95,16 @@ async def acompletion_with_retry(llm: ChatOpenAI, **kwargs: Any) -> Any:
 
 def _convert_dict_to_message(_dict: Mapping[str, Any]) -> BaseMessage:
     role = _dict["role"]
+    name = _dict.get("name") # Get the name if present, otherwise return None
     if role == "user":
-        return HumanMessage(content=_dict["content"])
+        return HumanMessage(content=_dict["content"], name=name)
     elif role == "assistant":
         content = _dict["content"] or ""  # OpenAI returns None for tool invocations
         if _dict.get("function_call"):
             additional_kwargs = {"function_call": dict(_dict["function_call"])}
         else:
             additional_kwargs = {}
-        return AIMessage(content=content, additional_kwargs=additional_kwargs)
+        return AIMessage(content=content, name=name, additional_kwargs=additional_kwargs)
     elif role == "system":
         return SystemMessage(content=_dict["content"])
     else:
@@ -114,11 +115,15 @@ def _convert_message_to_dict(message: BaseMessage) -> dict:
     if isinstance(message, ChatMessage):
         message_dict = {"role": message.role, "content": message.content}
     elif isinstance(message, HumanMessage):
-        message_dict = {"role": "user", "content": message.content}
+        if message.name is not None:
+            message_dict = {"role": "user", "name": message.name, "content": message.content}
+        else:
+            message_dict = {"role": "user", "content": message.content}
     elif isinstance(message, AIMessage):
-        message_dict = {"role": "assistant", "content": message.content}
-        if "function_call" in message.additional_kwargs:
-            message_dict["function_call"] = message.additional_kwargs["function_call"]
+        if isinstance(message, AIMessage) and message.name is not None:
+            message_dict = {"role": "assistant", "name": message.name, "content": message.content}
+        else:
+            message_dict = {"role": "assistant", "content": message.content}
     elif isinstance(message, SystemMessage):
         message_dict = {"role": "system", "content": message.content}
     elif isinstance(message, FunctionMessage):
