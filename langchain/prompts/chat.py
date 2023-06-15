@@ -162,9 +162,9 @@ class ChatPromptTemplate(BaseChatPromptTemplate, ABC):
     messages: List[Union[BaseMessagePromptTemplate, BaseMessage]]
 
     @classmethod
-    def from_template(cls, template: str, **kwargs: Any) -> ChatPromptTemplate:
+    def from_template(cls, template: str, name=None, **kwargs: Any) -> ChatPromptTemplate:
         prompt_template = PromptTemplate.from_template(template, **kwargs)
-        message = HumanMessagePromptTemplate(prompt=prompt_template)
+        message = HumanMessagePromptTemplate(prompt=prompt_template, name=name)
         return cls.from_messages([message])
 
     @classmethod
